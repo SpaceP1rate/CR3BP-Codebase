@@ -1,7 +1,6 @@
 clear; close; clc;
 
-addpath(genpath('Codebase'))
-addpath('planet3D')
+addpath(genpath('../src'))
 
 
 mu = 0.01216;
@@ -85,23 +84,6 @@ m1 = 5.97219*1e24;
 a = 3.844 * 1e8;
 [X_rotdim, t_dim] = cr3bp_conv_dim(X_rrot,t,a, 'Primary Mass', [m1, mu]);
 [X_rend, t_rend]  = cr3bp_conv_nondim(X_rotdim, t_dim, a, 'Primary Mass', [m1,mu]);
-
-figure(8)
-background('Milky Way')
-hold on
-
-% opts.Position = [-mu*a;0;0];
-
-moon_opts.Position = [(1-mu)*a;0;0];
-moon_opts.Clipping = 'on';
-moon_opts.RefPlane = 'equatorial';
-% planet3D('Earth Cloudy',opts)
-planet3D('Moon',moon_opts)
-light('Position',[1,-1,0]);
-plot3(X_rotdim(:,1),X_rotdim(:,2),zeros(size(X_rotdim,1),1))
-
-hold off
-
 
 
 % Minor differences after redimensionalization noticed, possibly due to
