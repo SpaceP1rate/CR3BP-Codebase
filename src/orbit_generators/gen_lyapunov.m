@@ -82,7 +82,7 @@ switch LP
         alpha = [0.1245, 0.145]; % Dynamic scalar tuned for L2
 end
 
-fprintf('Shooting for Lyapunov orbit around %s.\n%s\n',LP,repmat('-', 1, 44))
+fprintf('Shooting for Lyapunov orbit around %s.\n%s\n',LP,repmat('-', 1, 46))
 for iter = 1:maxIter
 
     X0 = [x_start; 0; 0; 0; vy0; 0];
@@ -137,5 +137,4 @@ switch nargout
         varargout{1} = cr3bp_sys_jacconst(Corrected_IC, mu); % Jacobi
         varargout{2} = 0.5 * trace(Phi([3 6],[3 6])); % 0.5 trace(Phi_z) or nu
 end
-
 end

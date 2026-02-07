@@ -8,7 +8,7 @@ L = cr3bp_sys_lagpoints(mu, LP);
 
 LP_Jac = cr3bp_sys_jacconst([L(1), 0, 0, 0, 0, 0], mu);
 
-C_target = linspace(LP_Jac - 0.01,LP_Jac - 0.1,20);
+C_target = linspace(LP_Jac - 0.01,LP_Jac - 0.24,4);
 
 %% Lyapunov Orbit Generator
 for i=1:length(C_target)
@@ -34,7 +34,7 @@ for i = 1:length(C_target)
     catch
         fprintf("Not possible to resolve\n");
     end
-    p1=plot(Xdim(:,1), Xdim(:,2),'LineWidth',1.5,'DisplayName',l1p_str);
+    p1=plot3(Xdim(:,1), Xdim(:,2),Xdim(:,3),'LineWidth',1.5,'DisplayName',l1p_str);
     axis("equal")
 end
 hold off
