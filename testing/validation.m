@@ -7,65 +7,59 @@ LP = 'l1';
 L = cr3bp_sys_lagpoints(mu, LP);
 LP_Jac = cr3bp_sys_jacconst([L(1), 0, 0, 0, 0, 0], mu);
 
-deltaX = linspace(0.01,0.11,20); % max 0.13 for L1, 0.15 for L2 
-deltaZ = linspace(1e-3,1e-2,20);
+deltaX = 0.03; % max 0.13 for L1, 0.15 for L2 
 %% Lyapunov Orbit Generator
-for i=1:length(deltaX)
-    [X0,T_half,JC,nu] = gen_lyapunov(deltaX(i),LP,mu);
-    X0L(i,:) = X0;
-    T_Lfam(i,1) = 2*T_half;
-    nu_Lfam(i,1) = nu;
-end
 
-X0h = X0L(2,:);
-X0h(3) = 1e-4;
+[X0,T_half,JC,Phi] = gen_lyapunov(deltaX,LP,mu);
+X0L= X0;
+T_Lfam = 2*T_half;
+
+X0h = X0L;
+X0h(3) = 3e-2;
 type = 'south';
-for i =1:length(deltaZ)
-    [Xh0,T_halfh,JCh,nuh] = gen_halo(X0h,type,LP,mu);
-    X0H(i,:) = Xh0;
-    T_Hfam(i,1) = 2*T_halfh;
-    nu_Hfam(i,1) = nuh;
-    X0h = Xh0;
-    X0h(3) = deltaZ(i);
-end
 
+[Xh0,T_halfh,JCh,nuh] = gen_halo(X0h,type,LP,mu);
+X0H = Xh0;
+T_Hfam = 2*T_halfh;
+nu_Hfam = nuh;
+
+Y0 = [X0H'; reshape(eye(6), [], 1)];
+
+[~,Yp] = ode45(@(t,Y) cr3bp_eom_stm(t,Y,mu), [0 T_Lfam], Y0);
+M = reshape(Yp(end, 7:end), 6, 6);
+
+X_halo1 = Yp(45,1:6);
+X_halo2 = Yp(75,1:6);
+[V, D] = eig(M);
+
+Xp = X0H' - 1e-3* V(:,2);
+Xp1 = X_halo1' - 1e-3 * V(:,2);
+Xp2 = X_halo2' - 1e-3 * V(:,2);
 %% Plotting
-a = 3.844 * 1e8;
-m1 = 5.97219*1e24;
-
+clf;
 figure(1);hold on
-l1p_str = sprintf('L_2 Lyapunov (JC=%.4f)',JC);
-scatter((1-mu),0,40,'o','filled')
-opts = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
-for i = 1:length(deltaX)
-    try
-        [t, X] = ode89(@(t,X) cr3bp_eom_gen(t,X,mu), 0:0.0001:T_Lfam(i), X0L(i,:)');
-        [Xdim, tdim] = cr3bp_conv_dim(X,t,a, 'Primary Mass', [m1, mu]);
-        [th, Xh] = ode89(@(t,X) cr3bp_eom_gen(t,X,mu), 0:0.0001:T_Hfam(i), X0H(i,:)');
-        [Xdimh, tdimh] = cr3bp_conv_dim(Xh,th,a, 'Primary Mass', [m1, mu]);
+scatter3(1-mu,0,0,'ko','filled','DisplayName','Moon')
+scatter3(L(1),0,0,'gx','DisplayName','L_1')
+[t, X] = ode89(@(t,X) cr3bp_eom_gen(t,X,mu), 0:0.0001:T_Lfam, X0L');
+[th, Xh] = ode89(@(t,X) cr3bp_eom_gen(t,X,mu), 0:0.0001:T_Hfam, X0H');
+[thu, Xhu] = ode89(@(t,X) cr3bp_eom_gen(t,X,mu), 0:-0.0001:-1.5*T_Hfam, Xp);
+[thu1, Xhu1] = ode89(@(t,X) cr3bp_eom_gen(t,X,mu), 0:-0.0001:-1.5*T_Hfam, Xp1);
+[thu2, Xhu2] = ode89(@(t,X) cr3bp_eom_gen(t,X,mu), 0:-0.0001:-1.5*T_Hfam, Xp2);
+p1=plot3(X(:,1), X(:,2),X(:,3),'LineWidth',1.2,'DisplayName','L_1 Lyapunov','Color','b');
+p2=plot3(Xh(:,1), Xh(:,2),Xh(:,3),'LineWidth',1.2,'DisplayName','South Halo','Color','k');
+p3=plot3(Xhu(:,1), Xhu(:,2),Xhu(:,3),'LineWidth',0.7,'DisplayName','South Halo Unstable Manifold','Color','r');
+p4=plot3(Xhu1(:,1), Xhu1(:,2),Xhu1(:,3),'LineWidth',0.7,'DisplayName','South Halo Unstable Manifold','Color','r');
+p5=plot3(Xhu2(:,1), Xhu2(:,2),Xhu2(:,3),'LineWidth',0.7,'DisplayName','South Halo Unstable Manifold','Color','r');
 
-    catch
-        fprintf("Not possible to resolve\n");
-    end
-    p1=plot3(X(:,1), X(:,2),X(:,3),'LineWidth',1.5,'DisplayName',l1p_str,'Color','b');
-    p2=plot3(Xh(:,1), Xh(:,2),Xh(:,3),'LineWidth',1.5,'DisplayName','North Halo','Color','r');
-    % axis('auto')
-end
-
+axis equal
 zlim([-1e-1,1e-1])
-xlim([1-mu-0.3,1-mu+0.3])
+xlim([1-mu-0.6,1-mu+0.1])
 ylim([-0.3,0.3])
-hold off
+hold off; grid on;
 xlabel('x'); ylabel('y');
-title('Planar Lyapunov Orbit [Rotating]');
+title('Periodic Orbits in CR3BP');
+legend()
 view(3)
-figure(2); hold on
-plot(deltaX,nu_Lfam,'DisplayName','Vertical Stability Index Lyapunov')
-plot(deltaZ,nu_Hfam,'DisplayName','Vertical Stability Index Halo')
-yline(1,'DisplayName','Bifurcation Point')
-xlabel("X Displacement")
-ylabel("Vertical Stability Index \nu")
-legend('Location','northeast')
-title("Jacobi Constant vs Vertical Stability Index")
+
 
 

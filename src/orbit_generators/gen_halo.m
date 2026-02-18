@@ -52,17 +52,17 @@ function [Corrected_IC, T_half, varargout] = gen_halo(IC,type,LP, mu)
         vy0 = vy0 + 0.3*delta(2);
 
         if mod(iter, 5) == 0 || iter == 1
-            fprintf('Iter %d:z0 = %f, vy = %f, error vx = %e, error vz = %e\n',...
-                iter, z0,vy0, abs(F(1)),abs(F(2)));
+            fprintf('Iter %d: x0 = %f, vy0 = %f, error vx = %e, error vz = %e\n',...
+                iter, x_start,vy0, abs(F(1)),abs(F(2)));
         end
     
         if abs(F(2)) < tol
-            fprintf('%s\nConverged in %d iterations.\n',repmat('-', 1, 44), iter);
+            fprintf('%s\nConverged in %d iterations.\n\n',repmat('-', 1, 44), iter);
             break;
         end
 
         if iter == maxIter
-            fprintf('%s\nNot Converged after max iterations.\n',repmat('-', 1, 44));
+            fprintf('%s\nNot Converged after max iterations.\n\n',repmat('-', 1, 44));
         end
     end
     

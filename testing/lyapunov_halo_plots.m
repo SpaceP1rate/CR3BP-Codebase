@@ -1,5 +1,6 @@
 %% CR3BP Final 5-Plot Orbit Set (Refined View Angles)
 clear; close all; clc;
+addpath(genpath('../src'))
 %% 1. Parameters & Setup
 mu = 0.0121505;
 colors = struct( ...
@@ -86,11 +87,11 @@ format_halo_plot('L2 Halo Family', mu, L2_coords, moon_x, 0.18);
 view([-25, 10]); % Consistent family view
 
 %% ---------------- PRINTING COMMANDS (600 DPI) -------------
-exportgraphics(fig1, 'Planar_Lyapunov.png', 'Resolution', 600);
-exportgraphics(fig2, 'L1_Overview.png', 'Resolution', 600);
-exportgraphics(fig3, 'L2_Overview.png', 'Resolution', 600);
-exportgraphics(fig4, 'L1_Halo_Family.png', 'Resolution', 600);
-exportgraphics(fig5, 'L2_Halo_Family.png', 'Resolution', 600);
+% exportgraphics(fig1, 'Planar_Lyapunov.png', 'Resolution', 600);
+% exportgraphics(fig2, 'L1_Overview.png', 'Resolution', 600);
+% exportgraphics(fig3, 'L2_Overview.png', 'Resolution', 600);
+% exportgraphics(fig4, 'L1_Halo_Family.png', 'Resolution', 600);
+% exportgraphics(fig5, 'L2_Halo_Family.png', 'Resolution', 600);
 
 %% ---------------- HELPER FUNCTIONS ------------------------
 function [X0_seed, X_bif] = plot_lyapunov_family(LP, mu, dx_steps, col, seed_col, target_idx)

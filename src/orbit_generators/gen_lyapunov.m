@@ -53,17 +53,17 @@ function [Corrected_IC, T_half, varargout] = gen_lyapunov(deltaX, LP, mu)
         vy0 = vy0 + 0.6*delta(1);
         tf = tf + 0.6*delta(2);
 
-        if mod(iter, 50) == 0 || iter == 1
-            fprintf('Iter %d: vy = %f, error vx = %e\n', iter, vy0, abs(F(2)));
+        if mod(iter, 5) == 0 || iter == 1
+            fprintf('Iter %d: vy0 = %f, error vx = %e\n', iter, vy0, abs(F(2)));
         end
     
         if abs(F(2)) < tol
-            fprintf('%s\nConverged in %d iterations.\n',repmat('-', 1, 44), iter);
+            fprintf('%s\nConverged in %d iterations.\n\n',repmat('-', 1, 44), iter);
             break;
         end
 
         if iter == maxIter
-            fprintf('%s\nNot Converged after max iterations.\n',repmat('-', 1, 44));
+            fprintf('%s\nNot Converged after max iterations.\n\n',repmat('-', 1, 44));
         end
     end
     
@@ -75,6 +75,8 @@ function [Corrected_IC, T_half, varargout] = gen_lyapunov(deltaX, LP, mu)
             varargout{1} = cr3bp_sys_jacconst(Corrected_IC, mu);
         case 4
             varargout{1} = cr3bp_sys_jacconst(Corrected_IC, mu); % Jacobi
-            varargout{2} = 0.5 * trace(Phi([3 6],[3 6])); % 0.5 trace(Phi_z) or nu
+            varargout{2} = Phi;
     end
+
+    
 end
