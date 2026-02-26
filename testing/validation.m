@@ -26,7 +26,7 @@ nu_Hfam = nuh;
 
 Y0 = [X0H'; reshape(eye(6), [], 1)];
 
-[~,Yp] = ode45(@(t,Y) cr3bp_eom_stm(t,Y,mu), linspace(0,T_Lfam,10), Y0);
+[~,Yp] = ode45(@(t,Y) cr3bp_eom_stm(t,Y,mu), linspace(0,T_Lfam,50), Y0);
 M = reshape(Yp(end, 7:end), 6, 6);
 
 %% Halo Unstable Manifold
