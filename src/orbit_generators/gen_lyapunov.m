@@ -5,7 +5,7 @@ function [Corrected_IC, T_half, varargout] = gen_lyapunov(deltaX, LP, mu)
     nStates = 6;
     tol = 1e-11;
     maxIter = 500; 
-    opts = odeset('Events', @ode_event_xcross, 'RelTol', 1e-5, 'AbsTol', 1e-5);
+    opts = odeset('Events', @ode_event_xcross, 'RelTol', 1e-8, 'AbsTol', 1e-8);
     
     % Linearized analytical estimate for initial Vy guess
     % Based on the characteristic equation of CR3BP linearized at L1/L2
@@ -33,7 +33,7 @@ function [Corrected_IC, T_half, varargout] = gen_lyapunov(deltaX, LP, mu)
         X0 = [x_start; 0; 0; 0; vy0; 0];
         
         Y0 = [X0; reshape(eye(nStates), [], 1)];
-        [T, Xtemp, TE, YE, ~] = ode45(@(t,Y) cr3bp_eom_stm(t,Y,mu), [0 tf], Y0, opts);
+        [T, Xtemp, TE, YE, ~] = ode78(@(t,Y) cr3bp_eom_stm(t,Y,mu), [0 tf], Y0, opts);
         
         X_end = YE(end, 1:6);
         Phi   = reshape(YE(end, nStates+1:end), nStates, nStates);
