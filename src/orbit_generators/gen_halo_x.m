@@ -48,8 +48,8 @@ function [Corrected_IC, T_half, varargout] = gen_halo_x(IC,type,LP, mu)
         
         delta = -J \ F;
 
-        z_start = z_start + 0.2*delta(1);
-        vy0 = vy0 + 0.2*delta(2);
+        z_start = z_start + 0.3*delta(1);
+        vy0 = vy0 + 0.3*delta(2);
 
         if mod(iter, 5) == 0 || iter == 1
             fprintf('Iter %d: z0 = %f, vy0 = %f, error vx = %e, error vz = %e\n',...

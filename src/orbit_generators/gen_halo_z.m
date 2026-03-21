@@ -28,7 +28,7 @@ function [Corrected_IC, T_half, varargout] = gen_halo_z(IC,type,LP, mu)
     z0 = z_direction * IC(3);    
     tf = 5;
 
-    fprintf('Shooting for %s Halo orbit around %s.\n%s\n',type,LP,repmat('-', 1, 46))
+    fprintf('Shooting for %s Halo orbit around %s | Fixed Variable z0.\n%s\n',type,LP,repmat('-', 1, 89))
     for iter = 1:maxIter
     
         X0 = [x_start; 0; z0; 0; vy0; 0];
@@ -48,8 +48,8 @@ function [Corrected_IC, T_half, varargout] = gen_halo_z(IC,type,LP, mu)
         
         delta = -J \ F;
 
-        x_start = x_start + 0.2*delta(1);
-        vy0 = vy0 + 0.2*delta(2);
+        x_start = x_start + 0.3*delta(1);
+        vy0 = vy0 + 0.3*delta(2);
 
         if mod(iter, 5) == 0 || iter == 1
             fprintf('Iter %d: x0 = %f, vy0 = %f, error vx = %e, error vz = %e\n',...
@@ -57,12 +57,12 @@ function [Corrected_IC, T_half, varargout] = gen_halo_z(IC,type,LP, mu)
         end
     
         if abs(norm(F)) < tol
-            fprintf('%s\nConverged in %d iterations.\n\n',repmat('-', 1, 44), iter);
+            fprintf('%s\nConverged in %d iterations.\n\n',repmat('-', 1, 89), iter);
             break;
         end
 
         if iter == maxIter
-            fprintf('%s\nNot Converged after max iterations.\n\n',repmat('-', 1, 44));
+            fprintf('%s\nNot Converged after max iterations.\n\n',repmat('-', 1, 89));
         end
     end
     
@@ -74,6 +74,7 @@ function [Corrected_IC, T_half, varargout] = gen_halo_z(IC,type,LP, mu)
             varargout{1} = cr3bp_sys_jacconst(Corrected_IC, mu);
         case 4
             varargout{1} = cr3bp_sys_jacconst(Corrected_IC, mu); % Jacobi
-            varargout{2} = 0.5 * trace(Phi([3 6],[3 6])); % 0.5 trace(Phi_z) or nu
+            % varargout{2} = 0.5 * trace(Phi([3 6],[3 6])); % 0.5 trace(Phi_z) or nu
+            varargout{2} = J;
     end
 end
