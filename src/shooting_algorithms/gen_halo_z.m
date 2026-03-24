@@ -1,31 +1,20 @@
-function [Corrected_IC, T_half, varargout] = gen_halo_z(IC,type,LP, mu)
+function [Corrected_IC, T_half, nu] = gen_halo_z(IC,type,LP, mu)
 
     nStates = 6;
-    tol = 1e-10;
+    tol = 1e-8;
     maxIter = 500; 
-    opts = odeset('Events', @ode_event_xcross, 'RelTol', 1e-10, 'AbsTol', 1e-12);
+    opts = odeset('Events', @ode_event_xcross, 'RelTol', 1e-8, 'AbsTol', 1e-8);
     
     x_start = IC(1);
     vy0 = IC(5);
     
     switch type
-        case 'north'
-            switch LP
-                case 'l1'
-                z_direction = -1;
-                case 'l2'
-                z_direction = -1;
-            end
         case 'south'
-            switch LP
-                case 'l1'
-                z_direction = 1;
-                case 'l2'
-                z_direction = 1;
-            end
+            z0 = -IC(3); 
+        case 'north'
+            z0 = IC(3); 
     end
-
-    z0 = z_direction * IC(3);    
+       
     tf = 5;
 
     fprintf('Shooting for %s Halo orbit around %s | Fixed Variable z0.\n%s\n',type,LP,repmat('-', 1, 89))
@@ -46,10 +35,10 @@ function [Corrected_IC, T_half, varargout] = gen_halo_z(IC,type,LP, mu)
         J = [Phi(4,1), Phi(4,5);
              Phi(6,1), Phi(6,5)];
         
-        delta = -J \ F;
+        delta = -pinv(J)*F;
 
-        x_start = x_start + 0.3*delta(1);
-        vy0 = vy0 + 0.3*delta(2);
+        x_start = x_start + 0.1*delta(1);
+        vy0 = vy0 + 0.1*delta(2);
 
         if mod(iter, 5) == 0 || iter == 1
             fprintf('Iter %d: x0 = %f, vy0 = %f, error vx = %e, error vz = %e\n',...
@@ -69,12 +58,16 @@ function [Corrected_IC, T_half, varargout] = gen_halo_z(IC,type,LP, mu)
     Corrected_IC = [x_start, 0, z0, 0, vy0, 0];
     T_half = TE(end);
     
-    switch nargout
-        case 3
-            varargout{1} = cr3bp_sys_jacconst(Corrected_IC, mu);
-        case 4
-            varargout{1} = cr3bp_sys_jacconst(Corrected_IC, mu); % Jacobi
-            % varargout{2} = 0.5 * trace(Phi([3 6],[3 6])); % 0.5 trace(Phi_z) or nu
-            varargout{2} = J;
-    end
+    Y0 = [Corrected_IC'; reshape(eye(nStates), [], 1)];
+
+    [~, Yf] = ode89(@(t,X) cr3bp_eom_stm(t,X,mu), [0,2*T_half], Y0');
+    
+    M = reshape(Yf(end, nStates+1:end), nStates, nStates);
+
+    [~,D] = eig(M);
+
+    lambda_max = max(diag(D));
+
+    nu = 0.5*(lambda_max + 1/lambda_max);
+
 end

@@ -1,4 +1,4 @@
-function [Corrected_IC, T_half, varargout] = gen_halo_x(IC,type,LP, mu)
+function [Corrected_IC, T_half, nu] = gen_halo_x(IC,type,LP, mu)
 
     nStates = 6;
     tol = 1e-10;
@@ -79,11 +79,15 @@ function [Corrected_IC, T_half, varargout] = gen_halo_x(IC,type,LP, mu)
 
     T_half = TE(end);
     
-    switch nargout
-        case 3
-            varargout{1} = cr3bp_sys_jacconst(Corrected_IC, mu);
-        case 4
-            varargout{1} = cr3bp_sys_jacconst(Corrected_IC, mu); % Jacobi
-            varargout{2} = 0.5 * trace(Phi([3 6],[3 6])); % 0.5 trace(Phi_z) or nu
-    end
+    Y0 = [Corrected_IC'; reshape(eye(nStates), [], 1)];
+
+    [~, Yf] = ode89(@(t,X) cr3bp_eom_stm(t,X,mu), [0,2*T_half], Y0');
+    
+    M = reshape(Yf(end, nStates+1:end), nStates, nStates);
+
+    [~,D] = eig(M);
+
+    lambda_max = max(diag(D));
+
+    nu = 0.5*(lambda_max + 1/lambda_max);
 end
