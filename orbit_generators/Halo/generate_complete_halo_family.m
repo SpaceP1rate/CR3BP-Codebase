@@ -1,10 +1,10 @@
-clear; close; clc;
-addpath(genpath('..\src'))
+clear; close; clc;clf;
+addpath(genpath('..\..\src'))
 
 mu = 0.0121505;
 num_orbits = 12000;
-
-opts = odeset('RelTol', 1e-12, 'AbsTol', 1e-12);
+ 
+opts = odeset('RelTol', 1e-12, 'AbsTol', 1e-13);
 
 % Generate Complete Family of Halo Orbits
 if ~exist('south_halo_l1_ic.mat')
@@ -38,15 +38,16 @@ family.l2_north = L.family.l2_north;
 clear("L")
 
 
-figure(1)
+figure(1);clf;
 s1 = subplot(1,1,1); hold on
 figure(2)
 s2 = subplot(1,1,1); hold on
-for i=1:200:num_orbits
-    [~,XL1s] = ode78(@(t,X) cr3bp_eom_gen(t,X,mu), [0,family.l1_south.T(i)], family.l1_south.IC(i,:)',opts);
-    [~,XL1n] = ode78(@(t,X) cr3bp_eom_gen(t,X,mu), [0,family.l1_north.T(i)], family.l1_north.IC(i,:)',opts);
-    [~,XL2s] = ode78(@(t,X) cr3bp_eom_gen(t,X,mu), [0,family.l2_south.T(i)], family.l2_south.IC(i,:)',opts);
-    [~,XL2n] = ode78(@(t,X) cr3bp_eom_gen(t,X,mu), [0,family.l2_north.T(i)], family.l2_north.IC(i,:)',opts);
+
+for i=1:400:num_orbits
+    [~,XL1s] = ode89(@(t,X) cr3bp_eom_gen(t,X,mu), [0,family.l1_south.T(i)], family.l1_south.IC(i,:)',opts);
+    [~,XL1n] = ode89(@(t,X) cr3bp_eom_gen(t,X,mu), [0,family.l1_north.T(i)], family.l1_north.IC(i,:)',opts);
+    [~,XL2s] = ode89(@(t,X) cr3bp_eom_gen(t,X,mu), [0,family.l2_south.T(i)], family.l2_south.IC(i,:)',opts);
+    [~,XL2n] = ode89(@(t,X) cr3bp_eom_gen(t,X,mu), [0,family.l2_north.T(i)], family.l2_north.IC(i,:)',opts);
     if i ==1
         plot3(s1,XL1s(:,1), XL1s(:,2),XL1s(:,3),'LineWidth',0.1,'DisplayName','L_1 South','Color','r');
         plot3(s1,XL1n(:,1), XL1n(:,2),XL1n(:,3),'LineWidth',0.1,'DisplayName','L_1 North','Color','b');
@@ -59,6 +60,7 @@ for i=1:200:num_orbits
         plot3(s2,XL2n(:,1), XL2n(:,2),XL2n(:,3),'LineWidth',0.1,'HandleVisibility','off','Color','b');
     end
 end
+
 scatter3(s1,1-mu,0,0,10,'ko','filled','DisplayName','Moon')
 scatter3(s2,1-mu,0,0,10,'ko','filled','DisplayName','Moon')
 view(s1,66,20); view(s2,-66,20)
@@ -90,5 +92,24 @@ plot(family.l2_north.IC(1:end,3),family.l2_north.T(1:end),'--k','LineWidth',1.2,
 title("Orbital Period of Halo Families vs Z Displacement")
 xlabel('Z [LU]'); ylabel("Period [TU]")
 axis tight
+legend('Location','northeast')
+grid on
+
+id = 1000:num_orbits;
+
+beta = -2000:2000;
+
+figure(4);hold on
+plot(family.l1_south.params(id,1),family.l1_south.params(id,2),'-b','DisplayName','L_1 North Halo')
+plot(family.l2_north.params(id,1),family.l2_north.params(id,2),'-r','DisplayName','L_2 North Halo')
+plot((beta + 2)/(-2),beta,'--k','DisplayName','Tangent Bifurcation')
+plot((beta + 2)/(2),beta,'-.k','DisplayName','Period-Doubling Bifurcation')
+
+
+title("Broucke Stability Diagram")
+xlabel('\alpha'); ylabel("\beta")
+axis tight
+xlim([-3,3])
+ylim([-6,6])
 legend('Location','northeast')
 grid on

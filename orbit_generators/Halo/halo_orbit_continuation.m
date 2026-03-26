@@ -9,14 +9,14 @@ function halo_orbit_continuation(mu,LP,type,num_orbits)
     
     % Halo Seed
     X0h = X0L;
-    X0h(3) = 1e-3;
+    X0h(3) = 1e-4;
     
     % Halo Orbit Generator
-    [Xh0, T_halfh, nu] = gen_halo_z(X0h, type, LP, mu);
+    [Xh0, T_halfh, stability] = gen_halo_z(X0h, type, LP, mu);
     
     X0H(1,:) = Xh0;
     T_Hfam(1) = 2 * T_halfh;
-    nu_fam(1) = nu;
+    stab_fam(1,:) = stability;
     
     Y0 = [X0H'; reshape(eye(6), [], 1)];
     [~, YE] = ode78(@(t,Y) cr3bp_eom_stm(t,Y,mu), [0 T_Hfam], Y0);
@@ -50,10 +50,10 @@ function halo_orbit_continuation(mu,LP,type,num_orbits)
     tic
     
     for i=2:num_orbits
-        [Xh0, T_halfh, nu, Xstar_new, flag] = gen_halo_pac(Xh0_pac,Xh0,Xstar,T,T_Hfam(i-1),ds,type,LP,mu,alpha);
+        [Xh0, T_halfh, stability, Xstar_new, flag] = gen_halo_pac(Xh0_pac,Xh0,Xstar,T,T_Hfam(i-1),ds,type,LP,mu,alpha);
         X0H(i,:) = Xh0;
         T_Hfam(i) = 2 * T_halfh;
-        nu_fam(i) = nu;
+        stab_fam(i,:) = stability;
     
         if abs(Xh0(1)/(1-mu) - 1)*100 < 15
             alpha = 1;  
@@ -76,6 +76,8 @@ function halo_orbit_continuation(mu,LP,type,num_orbits)
     
     family.([LP,'_',type]).IC = X0H;
     family.([LP,'_',type]).T = T_Hfam;
+    family.([LP,'_',type]).params = stab_fam;
+
 
     fprintf("Continuation took %.2f minutes!\n\n",toc/60)
     save([type,'_halo_',LP,'_ic.mat'],"family")
