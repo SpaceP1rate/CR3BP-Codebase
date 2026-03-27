@@ -1,11 +1,12 @@
-function [Corrected_IC, T_half, nu] = gen_lyapunov(deltaX, LP, mu)
+function [Corrected_IC, T_half, stability] = gen_lyapunov(deltaX, LP, mu)
 
     L = cr3bp_sys_lagpoints(mu, LP);
     xL = L(1);
     nStates = 6;
     tol = 1e-8;
     maxIter = 500; 
-    opts = odeset('Events', @ode_event_xcross, 'RelTol', 1e-10, 'AbsTol', 1e-10);
+    opts = odeset('Events', @ode_event_xcross, 'RelTol', 1e-12, 'AbsTol', 1e-13);
+    opts_stab = odeset('RelTol', 1e-12, 'AbsTol', 1e-13); 
     
     % Linearized analytical estimate for initial Vy guess
     % Based on the characteristic equation of CR3BP linearized at L1/L2
@@ -72,14 +73,13 @@ function [Corrected_IC, T_half, nu] = gen_lyapunov(deltaX, LP, mu)
     
     Y0 = [Corrected_IC'; reshape(eye(nStates), [], 1)];
 
-    [~, Yf] = ode89(@(t,X) cr3bp_eom_stm(t,X,mu), [0,2*T_half], Y0');
+    [~, Yf] = ode89(@(t,X) cr3bp_eom_stm(t,X,mu), [0,2*T_half], Y0',opts_stab);
     
     M = reshape(Yf(end, nStates+1:end), nStates, nStates);
 
-    [~,D] = eig(M);
-
-    lambda_max = max(diag(D));
-
-    nu = 0.5*(lambda_max + 1/lambda_max);
+    [alpha, beta] = cr3bp_sys_stabilparams(M);
+    
+    stability(1) = alpha;
+    stability(2) = beta;
     
 end

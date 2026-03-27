@@ -1,9 +1,10 @@
-function [Corrected_IC, T_half, nu, Z_new, Flag] = gen_lyapunov_pac(IC_guess, IC_prev, Z_prev,T_cur,T_prev, ds,LP,mu)
+function [Corrected_IC, T_half, stability, Z_new, Flag] = gen_lyapunov_pac(IC_guess, IC_prev, Z_prev,T_cur,T_prev, ds,LP,mu)
 
     nStates = 6;
     tol = 1e-8;
     maxIter = 500; 
-    opts = odeset('Events', @ode_event_xcross, 'RelTol', 1e-8, 'AbsTol', 1e-8);
+    opts = odeset('Events', @ode_event_xcross, 'RelTol', 1e-12, 'AbsTol', 1e-13);
+    opts_stab = odeset('RelTol', 1e-12, 'AbsTol', 1e-13); 
     
     x0  = IC_guess(1);
     vy0 = IC_guess(5);
@@ -35,9 +36,9 @@ function [Corrected_IC, T_half, nu, Z_new, Flag] = gen_lyapunov_pac(IC_guess, IC
 
         delta = -pinv(DG)*G;
         
-        x0 = x0 + 0.8*delta(1);
-        vy0 = vy0 + 0.8*delta(2);
-        tf = tf + 0.8*delta(3);
+        x0 = x0 + delta(1);
+        vy0 = vy0 + delta(2);
+        tf = tf + delta(3);
 
         if mod(iter, 5) == 0 || iter == 1
             fprintf('Iter %d: x0 = %f, vy0 = %f, error vx = %e\n', iter,x0, vy0, abs(G(2)));
@@ -60,15 +61,14 @@ function [Corrected_IC, T_half, nu, Z_new, Flag] = gen_lyapunov_pac(IC_guess, IC
 
     Y0 = [Corrected_IC'; reshape(eye(nStates), [], 1)];
 
-    [~, Yf] = ode78(@(t,X) cr3bp_eom_stm(t,X,mu), [0,2*T_half], Y0');
+    [~, Yf] = ode78(@(t,X) cr3bp_eom_stm(t,X,mu), [0,2*T_half], Y0',opts_stab);
     
     M = reshape(Yf(end, nStates+1:end), nStates, nStates);
 
-    [~,D] = eig(M);
-
-    lambda_max = max(diag(D));
-
-    nu = 0.5*(lambda_max + 1/lambda_max);
+    [alpha, beta] = cr3bp_sys_stabilparams(M);
+    
+    stability(1) = alpha;
+    stability(2) = beta;
     
     Z_new = null(J); 
     if dot(Z_new, Z_prev) < 0, Z_new = -Z_new; end   
