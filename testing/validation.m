@@ -11,7 +11,7 @@ deltaX = 0.018; % max 0.13 for L1, 0.15 for L2
 num_orbits = 1200;
 %% Lyapunov Orbit Generator
 
-[X0,T_half,JC,Phi] = gen_lyapunov(deltaX,LP,mu);
+[X0,T_half,Phi] = gen_lyapunov(deltaX,LP,mu);
 X0L= X0;
 T_Lfam = 2*T_half;
 

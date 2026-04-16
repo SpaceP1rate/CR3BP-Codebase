@@ -35,7 +35,7 @@ ML1 = reshape(Y_L1(end, 7:end), 6, 6);
 X_L2 = Y_L2(:,1:6);
 X_L1 = Y_L1(:,1:6);
 
-X_L2_unstable = X_L2 - 1e-4*VL2(:,1)';
+X_L2_unstable = X_L2 + 1e-4*VL2(:,1)';
 X_L1_stable   = X_L1 - 1e-4*VL1(:,2)';
 
 %% Plotting
